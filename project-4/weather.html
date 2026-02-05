@@ -1,130 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weather</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f5f5f5;
-    }
-    .icon {
-      width: 80px;
-      height: 80px;
-    }
-    .temp {
-      font-size: 2rem;
-      font-weight: bold;
-    }
-    .search {
-      margin-top: 15px;
-    }
-    .search input {
-      padding: 8px;
-      font-size: 1rem;
-    }
-    .search button {
-      padding: 8px 12px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 250px;
-      margin: auto;
-      margin-top: 50px;
-    }
-    .error {
-      color: red;
-      font-size: 0.9rem;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather App</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6a7bd1, #7f5fb2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 🌤 Card */
+.card {
+  width: 320px;
+  padding: 25px;
+  border-radius: 25px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(15px);
+  color: white;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+/* City name */
+.card h1 {
+  font-size: 1.7rem;
+  font-weight: 600;
+}
+
+/* Condition */
+.card h2 {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-top: 5px;
+}
+
+/* Icon */
+.icon {
+  width: 70px;
+  margin: 20px auto;
+}
+
+/* Temp */
+.temp {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* 🌍 City List */
+.city-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.city {
+  padding: 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.city:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.05);
+}
+
+/* Error */
+.error {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #ffd1d1;
+}
+</style>
 </head>
+
 <body>
+
 <div class="card">
-  <h1>New York</h1>
-  <h2>Sunny</h2>
-  <img src="https://png.pngtree.com/png-clipart/20190924/original/pngtree-vector-sun-icon-png-image_4868966.jpg" alt="Weather Icon" class="icon">
-  <div class="temp">23°C</div>
-  <div class="search">
-    <input type="text" placeholder="Search city">
-    <button>Search</button>
+  <h1 id="city">Loading...</h1>
+  <h2 id="condition"></h2>
+
+  <img id="icon" class="icon" src="" alt="weather">
+
+  <div id="temp" class="temp">--°C</div>
+
+  <!-- 🌍 City Selector -->
+  <div class="city-list">
+    <div class="city">Kolkata</div>
+    <div class="city">Delhi</div>
+    <div class="city">Mumbai</div>
+    <div class="city">Chennai</div>
+    <div class="city">Bangalore</div>
+    <div class="city">Hyderabad</div>
   </div>
-  <div class="error"></div>
+
+  <div class="error" id="error"></div>
 </div>
 
 <script>
-  const apiKey = "69f29c12584568d52389912b639769ee"; // Replace with a valid API key if needed
-  const cityElement = document.querySelector("h1");
-  const conditionElement = document.querySelector("h2");
-  const tempElement = document.querySelector(".temp");
-  const iconElement = document.querySelector(".icon");
-  const searchInput = document.querySelector(".search input");
-  const searchButton = document.querySelector(".search button");
-  const errorElement = document.querySelector(".error");
+const apiKey = "69f29c12584568d52389912b639769ee";
 
-  function getWeather(city) {
-    // Clear previous error and reset UI
-    errorElement.textContent = "";
-    cityElement.textContent = "Loading...";
-    conditionElement.textContent = "";
-    tempElement.textContent = "--°C";
-    iconElement.src = "https://via.placeholder.com/80?text=?";
+const cityEl = document.getElementById("city");
+const conditionEl = document.getElementById("condition");
+const tempEl = document.getElementById("temp");
+const iconEl = document.getElementById("icon");
+const errorEl = document.getElementById("error");
 
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(response.status === 404 ? "City not found" : `Failed to fetch weather data: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("API Response:", data); // Debug response
-        cityElement.textContent = data.name || city;
-        conditionElement.textContent = data.weather[0].main || "Unknown";
-        tempElement.textContent = `${Math.round(data.main.temp)}°C`;
-        iconElement.src = data.weather[0].icon 
-          ? `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`
-          : "https://via.placeholder.com/80?text=Icon+Error";
-      })
-      .catch(error => {
-        cityElement.textContent = "Error";
-        conditionElement.textContent = "";
-        tempElement.textContent = "--°C";
-        iconElement.src = "https://via.placeholder.com/80?text=?";
-        errorElement.textContent = error.message;
-        console.error("Fetch error:", error);
-      });
-  }
+function getWeather(city) {
+  errorEl.textContent = "";
+  cityEl.textContent = city;
+  conditionEl.textContent = "Loading...";
+  tempEl.textContent = "--°C";
 
-  searchButton.addEventListener("click", () => {
-    const city = searchInput.value.trim();
-    if (city) {
-      getWeather(city);
-    } else {
-      errorElement.textContent = "Please enter a city name";
-    }
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+    .then(res => {
+      if (!res.ok) throw new Error("City not found");
+      return res.json();
+    })
+    .then(data => {
+      conditionEl.textContent = data.weather[0].main;
+      tempEl.textContent = `${Math.round(data.main.temp)}°C`;
+      iconEl.src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+    })
+    .catch(err => {
+      errorEl.textContent = err.message;
+    });
+}
+
+/* Click city */
+document.querySelectorAll(".city").forEach(city => {
+  city.addEventListener("click", () => {
+    getWeather(city.textContent);
   });
+});
 
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      const city = searchInput.value.trim();
-      if (city) {
-        getWeather(city);
-      } else {
-        errorElement.textContent = "Please enter a city name";
-      }
-    }
-  });
-
-  // Load default city
-  getWeather("New York");
+/* Default city */
+getWeather("Kolkata");
 </script>
+
 </body>
 </html>
